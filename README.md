@@ -13,7 +13,7 @@ pip install tensorflow fastapi uvicorn
 ### 2. Run project
 
 ```bash
-python3 main.py
+python3 app.py
 ```
 
 ### Usecase : Sent a list
