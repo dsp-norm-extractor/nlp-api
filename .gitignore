@@ -1,2 +1,4 @@
 my_model.pkl
 **/__pycache__
+/my_model_v2
+/act_model
