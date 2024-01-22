@@ -4,7 +4,7 @@ import torch
 from frames import *
 import uuid
 
-def process_sentence(sentence, tokenizer, loaded_model,act_tokenizer,act_model, use_model, demo_pred):
+def process_sentence(sentence, tokenizer, loaded_model,act_tokenizer,act_model,duty_tokenizer,duty_model, use_model, demo_pred):
 
     # predict label of sentence 
     inputs = tokenizer(sentence, return_tensors='pt')
@@ -22,6 +22,9 @@ def process_sentence(sentence, tokenizer, loaded_model,act_tokenizer,act_model, 
     if(use_model == 1):
         if (predictions == 2):
             fact_frame = create_empty_fact_frame()
+            new_id = uuid.uuid4()
+            fact_frame["id"] = new_id
+            fact_frame["fact"] = sentence
             flint_format["facts"].append(fact_frame)
         if(predictions == 0):
             #create act frame
@@ -84,6 +87,30 @@ def process_sentence(sentence, tokenizer, loaded_model,act_tokenizer,act_model, 
         if(predictions == 1):
             duty_frame = create_empty_duty_frame()
             flint_format["duties"].append(duty_frame)
+            duty_frame["id"] = uuid.uuid4() #build frame id
+
+            # predict sub-labels for acts
+            tokens = duty_tokenizer.tokenize(duty_tokenizer.decode(duty_tokenizer.encode(sentence)))
+            inputs = duty_tokenizer.encode(sentence, return_tensors="pt").to(duty_model.device)
+            outputs = duty_model(inputs)[0]
+            predictions_duty = torch.argmax(outputs, dim=2) 
+            cls_index = tokens.index('[CLS]')
+            sep_index = tokens.index('[SEP]')
+            predictions_duty[0,cls_index] = -100
+            predictions_duty[0,sep_index] = -100
+
+            for i, element in enumerate(predictions_duty.flatten()):
+                #print(element.item())
+                
+                if(element.item() == 1):
+                    duty_frame["duty holder"] += tokens[i] + " "
+                if(element.item() == 2):
+                    duty_frame["duty claimant"] += tokens[i] + " "
+
+          
+            print("tokens",tokens)
+            print("pred",predictions_duty)
+
     else: # DEMO
         if(demo_pred == "F"):
             fact_frame = create_empty_fact_frame()

@@ -1,5 +1,6 @@
 def create_empty_flint_format() -> dict:
     flint_format = {
+        "sentence":"",
         "acts": [],
         "facts": [],
         "duties": []
