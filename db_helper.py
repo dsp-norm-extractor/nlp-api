@@ -44,8 +44,9 @@ def get_data(client, database_name, collection_name):
             # Example: Fetch all documents in the collection
             result = collection.find({})
             
-            for document in result:
-                print(document)
+
+            
+            return result
 
         except Exception as e:
             print(f"Error getting data from MongoDB: {e}")

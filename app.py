@@ -12,6 +12,8 @@ import random
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from db_helper import *
 from db_format import *
+from bson import json_util
+from bson import ObjectId
 
 mongo_client = None
 
@@ -101,7 +103,10 @@ async def save_data(data: List[dict]):
         game_name = game_data.get("game")
         details = game_data.get("details", [])
 
-        print(f"Game: {game_name}")
+        db_format = create_empty_db_format()
+
+        db_format["game"] = game_name
+
         for detail in details:
             sentence = detail.get("sentence")
             frames = detail.get("frames", {})
@@ -120,13 +125,42 @@ async def save_data(data: List[dict]):
             print(f"Duties: {duties}")
             print("\n")
 
+            act_frame = create_empty_act_frame()
+            fact_frame = create_empty_fact_frame()
+            duty_frame = create_empty_duty_frame()
+
+            
+
+            flint_format = create_empty_flint_format()
+            flint_format['acts'] = acts
+            flint_format['facts'] = facts
+            flint_format['duties'] = duties
+
+            flint_format["sentence"] = sentence
+
+            db_format["details"].append(flint_format)
+        
+
+
+        insert_document(mongo_client,"normative_games","frames",db_format)
+
+
     return data
 
 
 @app.get("/get_frames")
 async def get_frames():
-    get_data(mongo_client,"normative_games","frames")
-    return("ok")
+    data = get_data(mongo_client,"normative_games","frames")
+    
+
+    documents = [dict(document, _id=str(document['_id'])) for document in data]
+
+
+    return {"data": documents}  
+
+
+
+
     
 
 

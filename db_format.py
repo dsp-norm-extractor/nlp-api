@@ -1,7 +1,9 @@
 
+
+
 def create_empty_db_format() -> dict:
     db_format = {
         "game":"",
-        "sentences":[],
+        "details":[],
     }
     return db_format
