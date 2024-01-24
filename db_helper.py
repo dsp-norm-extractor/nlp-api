@@ -4,12 +4,8 @@ from pymongo.server_api import ServerApi
 import certifi
 
 
-
-
-
 def connect_to_mongo():
-    #uri = "mongodb+srv://stathistrigas99:Di4hyHZrFagWA1iw@norms-for-games.uppnd2y.mongodb.net/?retryWrites=true&w=majority"
-    
+    # uri = "mongodb+srv://stathistrigas99:Di4hyHZrFagWA1iw@norms-for-games.uppnd2y.mongodb.net/?retryWrites=true&w=majority"
 
     uri = "mongodb+srv://stathis:NT7B2f4A2BgzN8JW@norms-for-games.uppnd2y.mongodb.net/?retryWrites=true&w=majority"
 
@@ -18,8 +14,8 @@ def connect_to_mongo():
         client = MongoClient(uri, tlsCAFile=certifi.where())
 
         # The ismaster command is cheap and does not require auth.
-        client.admin.command('ismaster')
-        
+        client.admin.command("ismaster")
+
         print("Successfully connected to MongoDB!")
 
         return client
@@ -28,37 +24,23 @@ def connect_to_mongo():
         print(f"Failed to connect to MongoDB: {e}")
 
 
-
-def get_data(client, database_name, collection_name):
-
-    
+def get_data(client, database_name, collection_name, query_filter=None):
     if client:
         try:
-
             # Access the specified database and collection
             db = client[database_name]
             collection = db[collection_name]
 
+            # Use the provided query_filter, or default to fetching all documents
+            result = collection.find({} if query_filter is None else query_filter)
 
-            # Perform your query or data retrieval here
-            # Example: Fetch all documents in the collection
-            result = collection.find({})
-            
-
-            
             return result
 
         except Exception as e:
             print(f"Error getting data from MongoDB: {e}")
 
-        # finally:
-        #     # Close the MongoDB connection when done
-        #     client.close()
 
-
-def insert_document(client,database_name, collection_name, document):
-
-    
+def insert_document(client, database_name, collection_name, document):
     if client:
         try:
             # Access the specified database and collection
