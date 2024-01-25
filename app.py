@@ -169,6 +169,37 @@ async def get_frames():
     return {"data": documents}
 
 
+@app.get("/retrain_model")
+async def retrain_model():
+    data = get_data(mongo_client,"normative_games","frames")
+    
+    do_model_retraining(data)
+
+    return {"data": "model is retrained with accuracy x"}  
+
+
+@app.get("/get_game_details")
+async def get_game_details(game_name: str):
+    try:
+        data = get_data(
+            mongo_client,
+            "normative_games",
+            "frames",
+            {"game": {"$regex": game_name, "$options": "i"}},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # Convert cursor to list and then check if it's empty
+    documents = list(data)
+    if not documents:  # This checks for both None and empty list
+        raise HTTPException(status_code=404, detail=f"Game '{game_name}' not found")
+
+    documents = [dict(document, _id=str(document["_id"])) for document in documents]
+
+    return {"data": documents}
+
+
 
 
     
