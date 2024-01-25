@@ -19,6 +19,8 @@ from db_format import *
 from bson import json_util
 from bson import ObjectId
 from retraining_helper import *
+from pydantic import BaseModel
+
 
 mongo_client = None
 
@@ -194,6 +196,34 @@ async def get_game_details(game_name: str):
     documents = [dict(document, _id=str(document["_id"])) for document in documents]
 
     return {"data": documents}
+
+
+class UpdateGameData(BaseModel):
+    game_id: str
+    updated_details: List[dict]
+
+
+@app.post("/update_game_frames")
+async def update_game_frames(update_data: UpdateGameData):
+    game_id = update_data.game_id
+    updated_details = update_data.updated_details
+
+    db = mongo_client["normative_games"]
+    collection = db["frames"]
+
+    try:
+        object_id = ObjectId(game_id)
+
+        result = collection.update_one(
+            {"_id": object_id}, {"$set": {"details": updated_details}}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Game not found")
+
+        return {"message": "Game frames updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
