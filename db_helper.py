@@ -27,17 +27,18 @@ def connect_to_mongo():
 def get_data(client, database_name, collection_name, query_filter=None):
     if client:
         try:
-            # Access the specified database and collection
             db = client[database_name]
             collection = db[collection_name]
 
-            # Use the provided query_filter, or default to fetching all documents
+            # Execute the query
             result = collection.find({} if query_filter is None else query_filter)
 
-            return result
+            # Check if the query returned any documents
+            return list(result)  # Convert to list to see if any documents were returned
 
         except Exception as e:
             print(f"Error getting data from MongoDB: {e}")
+            return []  # Return an empty list on error
 
 
 def insert_document(client, database_name, collection_name, document):

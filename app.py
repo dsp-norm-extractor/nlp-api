@@ -76,21 +76,6 @@ async def predict_frame(data: List[str]):
     return result
 
 
-# @app.get("/save_test_frame")
-# async def save_to_db():
-
-#     act_frame = create_empty_act_frame()
-#     fact_frame = create_empty_fact_frame()
-#     duty_frame = create_empty_duty_frame()
-
-#     flint_format = create_empty_flint_format()
-#     flint_format['acts'].append(act_frame)
-#     flint_format['facts'].append(fact_frame)
-#     flint_format['duties'].append(duty_frame)
-#     insert_document(mongo_client,"normative_games","frames",flint_format)
-#     return("saved")
-
-
 @app.get("/save_test_frame")
 async def save_to_db():
     db_format = create_empty_db_format()
@@ -115,9 +100,20 @@ async def save_to_db():
 
 @app.post("/save_data")
 async def save_data(data: List[dict]):
+    print(data)
     for game_data in data:
         game_name = game_data.get("game")
         details = game_data.get("details", [])
+
+        existing_game = get_data(
+            mongo_client,
+            "normative_games",
+            "frames",
+            {"game": game_name},
+        )
+
+        if existing_game:  # This will now correctly check if the list is non-empty
+            raise HTTPException(status_code=400, detail="Game already exists")
 
         db_format = create_empty_db_format()
 
@@ -157,7 +153,7 @@ async def save_data(data: List[dict]):
 
         insert_document(mongo_client, "normative_games", "frames", db_format)
 
-    return data
+    return {"data": data}
 
 
 @app.get("/get_frames")
@@ -171,11 +167,11 @@ async def get_frames():
 
 @app.get("/retrain_model")
 async def retrain_model():
-    data = get_data(mongo_client,"normative_games","frames")
-    
+    data = get_data(mongo_client, "normative_games", "frames")
+
     do_model_retraining(data)
 
-    return {"data": "model is retrained with accuracy x"}  
+    return {"data": "model is retrained with accuracy x"}
 
 
 @app.get("/get_game_details")
@@ -198,11 +194,6 @@ async def get_game_details(game_name: str):
     documents = [dict(document, _id=str(document["_id"])) for document in documents]
 
     return {"data": documents}
-
-
-
-
-    
 
 
 if __name__ == "__main__":
